@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Component Tuner - Vibe Frontend Design</title>
+<style>
+  :root {
+    --card-pad: 24px;
+    --card-radius: 12px;
+    --card-shadow-blur: 12px;
+    --card-shadow-spread: 0px;
+    --card-shadow-opacity: 0.1;
+    --card-gap: 16px;
+    --title-fs: 20px;
+    --title-fw: 600;
+    --title-lh: 1.4;
+    --desc-fs: 14px;
+    --desc-lh: 1.6;
+    --desc-opacity: 0.7;
+    --tag-fs: 12px;
+    --tag-pad-x: 10px;
+    --tag-pad-y: 4px;
+    --tag-radius: 6px;
+    --btn-fs: 14px;
+    --btn-pad-x: 20px;
+    --btn-pad-y: 10px;
+    --btn-radius: 8px;
+    --img-height: 200px;
+    --img-radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ===== Preview Area ===== */
+  #preview {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+
+  .card {
+    background: #fff;
+    padding: var(--card-pad);
+    border-radius: var(--card-radius);
+    box-shadow: 0 4px var(--card-shadow-blur) var(--card-shadow-spread)
+                rgba(0,0,0, var(--card-shadow-opacity));
+    max-width: 380px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--card-gap);
+  }
+
+  .card-img {
+    width: 100%;
+    height: var(--img-height);
+    border-radius: var(--img-radius);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 32px;
+  }
+
+  .card-title {
+    font-size: var(--title-fs);
+    font-weight: var(--title-fw);
+    line-height: var(--title-lh);
+  }
+
+  .card-desc {
+    font-size: var(--desc-fs);
+    line-height: var(--desc-lh);
+    opacity: var(--desc-opacity);
+  }
+
+  .card-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: var(--tag-fs);
+    padding: var(--tag-pad-y) var(--tag-pad-x);
+    border-radius: var(--tag-radius);
+    background: #f0f0f5;
+    color: #555;
+  }
+
+  .card-btn {
+    font-size: var(--btn-fs);
+    padding: var(--btn-pad-y) var(--btn-pad-x);
+    border-radius: var(--btn-radius);
+    background: #007aff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    align-self: flex-start;
+    transition: background 0.2s;
+  }
+  .card-btn:hover { background: #0056b3; }
+
+  /* ===== Control Panel ===== */
+  #controls {
+    width: 380px;
+    background: #fff;
+    border-left: 1px solid #e5e5e5;
+    padding: 20px;
+    overflow-y: auto;
+    max-height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+
+  #controls h2 {
+    font-size: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .control-group {
+    margin-bottom: 20px;
+  }
+
+  .control-group h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .control-row label {
+    font-size: 13px;
+    min-width: 110px;
+    color: #333;
+  }
+
+  .control-row input[type="range"] {
+    flex: 1;
+    accent-color: #007aff;
+  }
+
+  .control-row .value {
+    font-size: 12px;
+    font-family: 'SF Mono', Monaco, monospace;
+    color: #007aff;
+    min-width: 50px;
+    text-align: right;
+  }
+
+  #export-area {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #eee;
+  }
+
+  #export-btn {
+    width: 100%;
+    padding: 10px;
+    background: #007aff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  #export-btn:hover { background: #0056b3; }
+
+  #export-output {
+    width: 100%;
+    height: 120px;
+    font-size: 11px;
+    font-family: 'SF Mono', Monaco, monospace;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 8px;
+    resize: vertical;
+    display: none;
+  }
+
+  .copied-toast {
+    text-align: center;
+    font-size: 12px;
+    color: #34c759;
+    margin-top: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .copied-toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Preview -->
+<div id="preview">
+  <div class="card">
+    <div class="card-img">Image</div>
+    <div class="card-title">Interactive Slider Tuning</div>
+    <div class="card-desc">Drag the sliders on the right panel to tune every visual parameter of this card in real-time. When you're happy with the result, click Export to copy all values.</div>
+    <div class="card-tags">
+      <span class="tag">VibeCoding</span>
+      <span class="tag">Design</span>
+      <span class="tag">Claude Code</span>
+    </div>
+    <button class="card-btn">Get Started</button>
+  </div>
+</div>
+
+<!-- Controls -->
+<div id="controls">
+  <h2>Card Tuner</h2>
+
+  <div class="control-group">
+    <h3>Card Layout</h3>
+    <div class="control-row">
+      <label>Padding</label>
+      <input type="range" min="8" max="48" value="24" data-var="--card-pad" data-unit="px">
+      <span class="value">24px</span>
+    </div>
+    <div class="control-row">
+      <label>Border Radius</label>
+      <input type="range" min="0" max="32" value="12" data-var="--card-radius" data-unit="px">
+      <span class="value">12px</span>
+    </div>
+    <div class="control-row">
+      <label>Shadow Blur</label>
+      <input type="range" min="0" max="40" value="12" data-var="--card-shadow-blur" data-unit="px">
+      <span class="value">12px</span>
+    </div>
+    <div class="control-row">
+      <label>Shadow Spread</label>
+      <input type="range" min="-10" max="20" value="0" data-var="--card-shadow-spread" data-unit="px">
+      <span class="value">0px</span>
+    </div>
+    <div class="control-row">
+      <label>Shadow Opacity</label>
+      <input type="range" min="0" max="50" value="10" data-var="--card-shadow-opacity" data-unit="" data-divisor="100">
+      <span class="value">0.1</span>
+    </div>
+    <div class="control-row">
+      <label>Inner Gap</label>
+      <input type="range" min="4" max="32" value="16" data-var="--card-gap" data-unit="px">
+      <span class="value">16px</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Image</h3>
+    <div class="control-row">
+      <label>Height</label>
+      <input type="range" min="80" max="320" value="200" data-var="--img-height" data-unit="px">
+      <span class="value">200px</span>
+    </div>
+    <div class="control-row">
+      <label>Border Radius</label>
+      <input type="range" min="0" max="24" value="8" data-var="--img-radius" data-unit="px">
+      <span class="value">8px</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Title</h3>
+    <div class="control-row">
+      <label>Font Size</label>
+      <input type="range" min="12" max="36" value="20" data-var="--title-fs" data-unit="px">
+      <span class="value">20px</span>
+    </div>
+    <div class="control-row">
+      <label>Font Weight</label>
+      <input type="range" min="300" max="900" step="100" value="600" data-var="--title-fw" data-unit="">
+      <span class="value">600</span>
+    </div>
+    <div class="control-row">
+      <label>Line Height</label>
+      <input type="range" min="10" max="24" value="14" data-var="--title-lh" data-unit="" data-divisor="10">
+      <span class="value">1.4</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Description</h3>
+    <div class="control-row">
+      <label>Font Size</label>
+      <input type="range" min="10" max="20" value="14" data-var="--desc-fs" data-unit="px">
+      <span class="value">14px</span>
+    </div>
+    <div class="control-row">
+      <label>Line Height</label>
+      <input type="range" min="12" max="24" value="16" data-var="--desc-lh" data-unit="" data-divisor="10">
+      <span class="value">1.6</span>
+    </div>
+    <div class="control-row">
+      <label>Opacity</label>
+      <input type="range" min="30" max="100" value="70" data-var="--desc-opacity" data-unit="" data-divisor="100">
+      <span class="value">0.7</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Tags</h3>
+    <div class="control-row">
+      <label>Font Size</label>
+      <input type="range" min="8" max="16" value="12" data-var="--tag-fs" data-unit="px">
+      <span class="value">12px</span>
+    </div>
+    <div class="control-row">
+      <label>Padding X</label>
+      <input type="range" min="4" max="20" value="10" data-var="--tag-pad-x" data-unit="px">
+      <span class="value">10px</span>
+    </div>
+    <div class="control-row">
+      <label>Padding Y</label>
+      <input type="range" min="2" max="12" value="4" data-var="--tag-pad-y" data-unit="px">
+      <span class="value">4px</span>
+    </div>
+    <div class="control-row">
+      <label>Border Radius</label>
+      <input type="range" min="0" max="16" value="6" data-var="--tag-radius" data-unit="px">
+      <span class="value">6px</span>
+    </div>
+  </div>
+
+  <div class="control-group">
+    <h3>Button</h3>
+    <div class="control-row">
+      <label>Font Size</label>
+      <input type="range" min="10" max="20" value="14" data-var="--btn-fs" data-unit="px">
+      <span class="value">14px</span>
+    </div>
+    <div class="control-row">
+      <label>Padding X</label>
+      <input type="range" min="8" max="40" value="20" data-var="--btn-pad-x" data-unit="px">
+      <span class="value">20px</span>
+    </div>
+    <div class="control-row">
+      <label>Padding Y</label>
+      <input type="range" min="4" max="20" value="10" data-var="--btn-pad-y" data-unit="px">
+      <span class="value">10px</span>
+    </div>
+    <div class="control-row">
+      <label>Border Radius</label>
+      <input type="range" min="0" max="24" value="8" data-var="--btn-radius" data-unit="px">
+      <span class="value">8px</span>
+    </div>
+  </div>
+
+  <div id="export-area">
+    <button id="export-btn" onclick="exportValues()">Export Parameters</button>
+    <textarea id="export-output" readonly></textarea>
+    <div class="copied-toast" id="toast">Copied to clipboard!</div>
+  </div>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const sliders = document.querySelectorAll('input[type="range"]');
+
+  sliders.forEach(slider => {
+    slider.addEventListener('input', () => {
+      const varName = slider.dataset.var;
+      const unit = slider.dataset.unit;
+      const divisor = slider.dataset.divisor ? Number(slider.dataset.divisor) : null;
+
+      let val = Number(slider.value);
+      let displayVal, cssVal;
+
+      if (divisor) {
+        displayVal = (val / divisor).toFixed(divisor === 100 ? 2 : 1);
+        cssVal = displayVal;
+      } else {
+        displayVal = val + unit;
+        cssVal = val + unit;
+      }
+
+      root.style.setProperty(varName, cssVal);
+      slider.closest('.control-row').querySelector('.value').textContent = displayVal;
+    });
+  });
+
+  function exportValues() {
+    const output = {};
+    sliders.forEach(slider => {
+      const varName = slider.dataset.var;
+      const unit = slider.dataset.unit;
+      const divisor = slider.dataset.divisor ? Number(slider.dataset.divisor) : null;
+      let val = Number(slider.value);
+
+      if (divisor) {
+        output[varName] = (val / divisor).toFixed(divisor === 100 ? 2 : 1);
+      } else {
+        output[varName] = val + unit;
+      }
+    });
+
+    // CSS variables format
+    const cssLines = Object.entries(output)
+      .map(([k, v]) => `  ${k}: ${v};`)
+      .join('\n');
+    const text = `:root {\n${cssLines}\n}`;
+
+    const textarea = document.getElementById('export-output');
+    textarea.style.display = 'block';
+    textarea.value = text;
+
+    navigator.clipboard.writeText(text).then(() => {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    });
+  }
+</script>
+
+</body>
+</html>
